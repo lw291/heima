@@ -1,0 +1,10 @@
+com\baidu\health\pojo\CheckGroup.class
+com\baidu\health\pojo\Member.class
+com\baidu\health\pojo\OrderSetting.class
+com\baidu\health\pojo\Setmeal.class
+com\baidu\health\pojo\Menu.class
+com\baidu\health\pojo\Order.class
+com\baidu\health\pojo\Role.class
+com\baidu\health\pojo\CheckItem.class
+com\baidu\health\pojo\User.class
+com\baidu\health\pojo\Permission.class
