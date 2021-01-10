@@ -282,6 +282,19 @@
             methods: {
                 //编辑
                 handleEdit() {
+                    //提交检查组信息this.formData, 选中的检查项id this.checkitemIds
+                    axios.post('/checkgroup/update.do?checkitemIds=' + this.checkitemIds, this.formData).then(res => {
+                        this.$message({
+                            message: res.data.message,
+                            type: res.data.flag?"success":"error"
+                        })
+                        if(res.data.flag){
+                            // 【注意】关闭的是编辑窗口
+                            this.dialogFormVisible4Edit = false;
+                            // 刷新列表数据
+                            this.findPage();
+                        }
+                    })
                 },
                 //添加
                 handleAdd () {
@@ -302,6 +315,14 @@
                 },
                 //分页查询
                 findPage() {
+                    axios.post('/checkgroup/findPage.do',this.pagination).then(res => {
+                        if(res.data.flag){
+                            this.dataList = res.data.data.rows;
+                            this.pagination.total = res.data.data.total;
+                        } else{
+                            this.$message.error(res.data.message);
+                        }
+                    });
                 },
                 // 重置表单
                 resetForm() {
@@ -329,12 +350,72 @@
                 },
                 // 弹出编辑窗口
                 handleUpdate(row) {
+                    var id = row.id; // 检查组的id
+                    //重置表单，
+                    this.resetForm();
+                    // 弹出编辑窗口()
+                    this.dialogFormVisible4Edit=true;
+                    //发送请求通过id查询检查组信息，绑定到formData. 检查组信息回显
+                    axios.get('/checkgroup/findById.do?id=' + id).then(res => {
+                        if(res.data.flag){
+                            this.formData = res.data.data;
+                            // 构建检查项列表，查询所有的检查项，绑定到tableData
+                            axios.get('/checkitem/findAll.do').then(res1 => {
+                                if(res1.data.flag){
+                                    // 绑定检查项列表
+                                    this.tableData = res1.data.data;
+                                    //回显钩选中的检查项，发送请求，通过检查组id查询选中的检查项id，绑定到checkitemIds
+                                    axios.get('/checkgroup/findCheckItemIdsByCheckGroupId.do?id=' + id).then(res2 => {
+                                        if(res2.data.flag){
+                                            this.checkitemIds = res2.data.data;
+                                        }else{
+                                            this.$message.error(res2.data.message);
+                                        }
+                                    })
+                                }else{
+                                    this.$message.error(res1.data.message);
+                                }
+                            });
+
+                        }else{
+                            this.$message.error(res.data.message);
+                        }
+                    });
                 },
                 //切换页码
                 handleCurrentChange(currentPage) {
+                    //currentPage为切换后的页码
+                    this.pagination.currentPage = currentPage;
+                    this.findPage();
                 },
                 // 删除
                 handleDelete(row) {
+                    // 弹出询问
+                    var id = row.id;// 检查项id
+                    // 弹出询问
+                    this.$confirm('此操作将【永久删除】该检查组, 是否继续?', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        // 提交删除的请求
+                        axios.post('/checkgroup/deleteById.do?id=' + id).then(res => {
+                            this.$message({
+                                message: res.data.message,
+                                type: res.data.flag?"success":"error"
+                            });
+                            if(res.data.flag){
+                                // 刷新列表
+                                this.findPage();
+                            }
+                        })
+                    }).catch(() => {
+                        this.$message({
+                            type: 'info',
+                            message: '已取消删除'
+                        });
+                    });
+
                 }
             }
         })
